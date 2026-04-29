@@ -15,6 +15,7 @@ import binascii
 import hashlib
 import json
 import os
+import re
 import ssl
 import sys
 import urllib.error
@@ -22,6 +23,14 @@ import urllib.request
 
 MANIFEST_URL = "https://m5burner-api.m5stack.com/api/firmware"
 BINARY_BASE = "https://m5burner.m5stack.com/firmware/"
+
+# Allow-list for the manifest's `file` field, which gets interpolated into
+# both a URL and a filesystem path. Everything we've ever seen from
+# m5burner-api is 32 hex chars + ".bin", so this is plenty permissive.
+# Disallowing slashes, dots-in-isolation, and URL-meaningful chars stops
+# path traversal, URL smuggling, and CRLF header injection at the source.
+# 256-char cap so a hostile manifest can't ship a multi-megabyte filename.
+_FILE_FIELD_RE = re.compile(r"^[A-Za-z0-9._-]{1,256}$")
 
 
 def _cache_dir() -> str:
@@ -226,11 +235,30 @@ def download(entry: dict, version: dict, dest_dir: str | None = None) -> str:
     file_field = version.get("file")
     if not file_field:
         raise SystemExit(f"Manifest version has no `file` field: {version}")
+    # Validate before the value flows into a URL or filesystem path. A
+    # hostile or buggy manifest cannot make us reach an arbitrary URL,
+    # write outside the cache dir, or inject CRLF into the request line.
+    if not _FILE_FIELD_RE.match(file_field):
+        raise SystemExit(
+            f"Manifest `file` field {file_field!r} is not in the allowed "
+            f"shape {_FILE_FIELD_RE.pattern}; refusing to use it in a URL "
+            "or filesystem path."
+        )
     # The `file` field may or may not include a .bin suffix depending
     # on when the entry was added; normalize both sides.
     url = BINARY_BASE + file_field + ("" if file_field.endswith(".bin") else ".bin")
     base = file_field[:-4] if file_field.endswith(".bin") else file_field
     dest = os.path.join(dest_dir, f"uiflow2_{base}.bin")
+    # Belt-and-suspenders containment check: if the regex above were ever
+    # loosened, this still catches anything that would write outside
+    # dest_dir. realpath collapses any "." / ".." / symlink games.
+    real_dest = os.path.realpath(dest)
+    real_root = os.path.realpath(dest_dir) + os.sep
+    if not real_dest.startswith(real_root):
+        raise SystemExit(
+            f"Refusing to write outside cache dir: dest={real_dest!r} "
+            f"is not under {real_root!r}."
+        )
     sidecar = dest + ".md5"
 
     # Cache-hit path: re-hash the cached binary and compare to the
