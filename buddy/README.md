@@ -19,7 +19,7 @@ MicroPython app bundle for the M5Stack Cardputer-Adv. Installed onto `/flash/` b
 
 ## Claude Buddy (BLE)
 
-Open Claude → Developer menu → **Hardware Buddy** → Connect. BLE-only, no WiFi needed anywhere. Stats (approvals / denials / level) persist across reboots via NVS under the `buddy` namespace.
+Open Claude → Developer menu → **Hardware Buddy** → Connect. BLE-only. Stats (approvals / denials / level) persist across reboots via NVS under the `buddy` namespace.
 
 ## Iterating on device code
 

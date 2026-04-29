@@ -4,16 +4,6 @@ Detect -> identify -> fetch firmware -> flash -> (optional apps
 install). Each stage prints its status so the user can see progress
 over what takes a couple of minutes in total.
 
-The apps we ship (Claude Buddy, Snake, Hello) run on BLE / USB only,
-so WiFi provisioning is out of scope for this skill. A standalone
-``configure_wifi.py`` still exists in the scripts directory for the
-rare case where someone wants to add WiFi to an already-provisioned
-device after the fact — but it's not part of the default onboarding
-flow, and it's not exposed through ``onboard.py`` flags anymore.
-Tightening the scope this way removed a surface area that was
-error-prone (SSID case-sensitivity, NVS key-type gotchas) and was
-being carried on every provision for little practical benefit.
-
 This is the entrypoint. Works on macOS (``/dev/cu.usbmodem*``),
 Linux (``/dev/ttyACM*`` / ``/dev/ttyUSB*``), and Windows (``COMx``)
 — pyserial abstracts the port-name differences, and the skill's

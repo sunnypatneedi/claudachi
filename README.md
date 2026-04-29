@@ -39,8 +39,6 @@ Done. Power the device on/off with the side switch.
 2. Pick **Claude Buddy** from the launcher menu
 3. In Claude (desktop app): Developer menu → **Hardware Buddy** → Connect
 
-No WiFi needed anywhere — everything runs over Bluetooth.
-
 ## Adding your own app
 
 1. Drop a `.py` file into `buddy/device/apps/`

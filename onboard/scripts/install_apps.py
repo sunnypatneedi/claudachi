@@ -1,9 +1,9 @@
 """Install a bundle of MicroPython .py files onto /flash/ on the device.
 
-This is the third provisioning step beyond "flash firmware" and "set
-WiFi": it copies the user's app sources onto the device so it boots
-into their software instead of UIFlow's pairing screen. Think of it
-as provisioning the *payload* that runs on top of UIFlow.
+This is the second step after "flash firmware": it copies the user's
+app sources onto the device so it boots into their software instead
+of UIFlow's pairing screen. Think of it as provisioning the *payload*
+that runs on top of UIFlow.
 
 ### Source layout → device layout
 
