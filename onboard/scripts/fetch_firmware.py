@@ -154,6 +154,16 @@ VARIANTS = {
         "entry_name": "UIFlow2.0",
         "version_suffix": "",
     },
+    "cardputer": {
+        "category": "cardputer",
+        "entry_name": "UIFlow2.0",
+        "version_suffix": "",
+    },
+    "cardputer-adv": {
+        "category": "cardputer",
+        "entry_name": "UIFlow2.0 Cardputer-Adv",
+        "version_suffix": "",
+    },
 }
 
 

@@ -540,25 +540,28 @@ def _preflight() -> None:
     if the bundled vendor/ is missing AND the user's environment also
     doesn't have them.
 
-    The goal is "clone the skill and go" — zero additional install
-    steps. With ``scripts/vendor/`` present (the default shipping
-    configuration), both deps are already on ``sys.path`` via the
-    ``vendor_path.ensure_on_syspath()`` call at the top of this file,
-    and we just verify the imports resolve. No pip prompt, no network
-    call, nothing.
+    The goal is "clone the skill and go" — minimal install steps.
+    pyserial ships in ``scripts/vendor/`` (BSD-3-Clause, vendored to
+    avoid even the one pip step on a fresh machine). esptool is
+    GPLv2+ and intentionally NOT vendored; it comes from pip on
+    first run if it isn't already in the user's environment, which
+    is what the prompt below handles.
 
     If somebody pruned ``vendor/`` (downloaded a zip without it, ran
     a shallow clone that excluded it, deliberately trimmed to reduce
-    repo size) we fall back to the pre-vendor behavior: check if
-    pyserial / esptool are importable from the user's environment,
-    and if not, offer to pip-install them.
+    repo size) we also fall back to pip-installing pyserial.
     """
-    # Vendor is present and importable? Great — we're done. No network,
-    # no prompts, no version drift. Surface the state once so the
-    # provisioning log is honest about where the deps came from.
+    # Both deps importable + vendor present → log honestly about where
+    # each came from and proceed. The previous message claimed both
+    # came from vendor/, which has been false since we unbundled
+    # esptool to keep the repo cleanly Apache-2.0.
     if vendor_path.is_available() and _pyserial_present() and _esptool_present():
+        # esptool may or may not be in the user env vs. some other
+        # source; the only thing we know for sure is that find_spec
+        # resolved it. Don't claim it came from vendor/ specifically.
         sys.stderr.write(
-            "Using bundled deps from scripts/vendor/ (pyserial + esptool).\n"
+            "Deps OK: pyserial from scripts/vendor/, esptool from "
+            "user/system site-packages.\n"
         )
         return
 
