@@ -14,26 +14,28 @@ Claude Code discovers skills by their frontmatter name if they live under `~/.cl
 ### macOS / Linux
 
 ```bash
-git clone <m5stack repo> ~/Downloads/m5stack
+git clone <m5stack repo>             # anywhere — clone location doesn't matter
 mkdir -p ~/.claude/skills
-ln -s ~/Downloads/m5stack/onboard ~/.claude/skills/m5-onboard
+ln -s "$(pwd)/<repo-dir>/onboard" ~/.claude/skills/m5-onboard
 ```
+
+`<repo-dir>` is whatever folder `git clone` created (usually the repo's name on the remote). The skill resolves the bundle path off `os.path.realpath(__file__)`, so it follows the symlink back to wherever the repo actually lives.
 
 ### Windows (PowerShell)
 
 ```powershell
-git clone <m5stack repo> $HOME\Downloads\m5stack
+git clone <m5stack repo>             # anywhere
 New-Item -ItemType Directory -Force -Path $HOME\.claude\skills | Out-Null
 # Junctions don't need admin/Developer Mode and work the same as
 # symlinks for this purpose (Claude Code follows them).
-cmd /c mklink /J "$HOME\.claude\skills\m5-onboard" "$HOME\Downloads\m5stack\onboard"
+cmd /c mklink /J "$HOME\.claude\skills\m5-onboard" "<full-path-to-repo>\onboard"
 ```
 
 If `mklink /J` fails with "You do not have sufficient privilege", run PowerShell as Administrator once for the install step. Junctions are fine for directories on the same drive; if your repo lives on `D:\` and your user profile is on `C:\`, use a symlink (`cmd /c mklink /D ...`) instead — that path needs Developer Mode enabled in Windows Settings.
 
 ### All platforms
 
-The `buddy/` sibling directory ships in the same repo, so `--apps buddy` (which resolves to `~/Downloads/m5stack/buddy/device`) works out of the box after a single clone. If your checkout lives somewhere other than `~/Downloads/m5stack/` (custom home on Linux, OneDrive-redirected Downloads on Windows, `D:\` drive, etc.), set `M5_BUDDY_DIR` in the environment to the bundle path — see the Platform notes section.
+The `buddy/` sibling directory ships in the same repo, so `--apps buddy` works out of the box after a single clone — the skill resolves the bundle relative to its own install location (via `os.path.realpath(__file__)`), so the repo can live anywhere on disk. `~/Downloads/m5stack/buddy/device` and `~/Desktop/m5stack/buddy/device` are checked as conventional fallbacks if the script-relative path doesn't pan out. Set `M5_BUDDY_DIR` only if you want to point at a different bundle than the one bundled with this clone — see the Platform notes section.
 
 If the skill ever stops triggering, verify the junction/symlink still points somewhere real:
 - macOS / Linux: `ls -la ~/.claude/skills/m5-onboard`
@@ -84,7 +86,7 @@ Users running `onboard.py` directly in their own terminal (not via Claude Code) 
 
 If `--port` is omitted, `detect.py` picks the most likely candidate across all three OSes: native-USB ESP32-S3 (`/dev/cu.usbmodem*` on macOS, `/dev/ttyACM*` on Linux, `COMx` on Windows), or a CH9102/CP210x UART bridge on older boards. Bluetooth-serial ports are filtered out. If multiple candidates are present, it asks.
 
-The known apps name `buddy` resolves to `~/Downloads/m5stack/buddy/device` (custom launcher + Hello + Claude Buddy BLE client + Snake). Any other `--apps` value is treated as a filesystem path.
+The known apps name `buddy` resolves to the `buddy/device/` directory in this repo (custom launcher + Hello + Claude Buddy BLE client + Snake). Any other `--apps` value is treated as a filesystem path.
 
 To skip re-flashing and just push (or refresh) the apps onto an already-provisioned device:
 
@@ -198,5 +200,11 @@ The skill runs on macOS, Linux, and Windows. Non-obvious bits:
   - Add `%APPDATA%\Python\Python3XX\Scripts` to PATH via System Properties → Environment Variables, OR
   - Use `python -m esptool ...` which always works regardless of PATH.
 - **Windows Store Python.** Newer Windows 11 machines may have Python pre-installed via Microsoft Store. It works but has quirky PATH behavior (lives under `%LOCALAPPDATA%\Packages\PythonSoftwareFoundation.Python.*\`). `detect.py` checks that location too. If you have the choice, the `winget install Python.Python.3.13` version is more predictable.
-- **`~/Downloads/m5stack/` not a hard requirement.** `install_apps.py`'s `--src buddy` shorthand expands to `~/Downloads/m5stack/buddy/device` by default. If your monorepo lives somewhere else (common on Windows with localized `Downloads` folders or `D:\` drive setups), set `M5_BUDDY_DIR` in the environment before invoking the skill: `export M5_BUDDY_DIR=/path/to/buddy/device` (Unix) or `$env:M5_BUDDY_DIR="C:\path\to\buddy\device"` (PowerShell).
+- **Bundle path resolution.** `install_apps.py`'s `--src buddy` shorthand resolves in this order:
+  1. `$M5_BUDDY_DIR` if set — explicit override, always wins. Useful when you want to point at a fork or a customized bundle that isn't in this clone.
+  2. The `buddy/device/` directory inside this repo, found via `os.path.realpath(__file__)` walking up from `install_apps.py`. Works for any clone location, including symlinked skill installs at `~/.claude/skills/m5-onboard/`.
+  3. `~/Downloads/m5stack/buddy/device`.
+  4. `~/Desktop/m5stack/buddy/device`.
+
+  Most installs hit (2). Set `M5_BUDDY_DIR` only for the unusual case of pointing at a bundle outside this clone: `export M5_BUDDY_DIR=/path/to/buddy/device` (Unix) or `$env:M5_BUDDY_DIR="C:\path\to\buddy\device"` (PowerShell).
 - **Firmware cache.** Downloaded firmware lands at `~/.cache/m5-onboard/` (or `$XDG_CACHE_HOME/m5-onboard/`), created at mode 0700 if missing. Cache files are MD5-verified at write time and re-verified on hit. Clearing the cache is safe; the next run re-downloads.

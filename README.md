@@ -4,11 +4,11 @@ Flash a Cardputer-Adv and install the Claude Buddy apps in one command.
 
 ## Quick start
 
-1. Clone this repo to `~/Downloads/m5stack/` — the path the skill defaults to:
+1. Clone this repo locally — anywhere is fine:
    ```bash
-   git clone <repo-url> ~/Downloads/m5stack
+   git clone <repo-url>
    ```
-   (If you want it elsewhere, see "Custom clone location" below.)
+   The skill auto-detects the buddy bundle relative to its own install location, so the clone path doesn't matter. `~/Downloads/m5stack/` and `~/Desktop/m5stack/` are also checked as conventional fallbacks.
 2. Plug the Cardputer into your laptop via USB-C
 3. Open Claude Code and start a new chat
 4. Point Claude Code to the repo folder
@@ -89,10 +89,10 @@ Bootstrap if needed:
 
 **Windows + older boards only:** the CH9102 USB-UART driver is needed for Basic / Fire / Core2 / StickC. Download from [WCH](https://www.wch.cn/downloads/CH343SER_EXE.html). Cardputer-Adv and CoreS3 use the in-box composite-USB driver and need nothing extra.
 
-**Custom clone location?** If the repo isn't at `~/Downloads/m5stack/`, set `M5_BUDDY_DIR`:
+**Want `--apps buddy` to point at a different bundle?** The default resolves to the `buddy/device/` directory next to the skill in this repo, with `~/Downloads/m5stack/` and `~/Desktop/m5stack/` checked as fallbacks. To override (e.g. you maintain a fork or have a customized bundle elsewhere), set `M5_BUDDY_DIR`:
 
 ```bash
-export M5_BUDDY_DIR=/path/to/m5stack/buddy/device
+export M5_BUDDY_DIR=/path/to/buddy/device
 ```
 
 ## Troubleshooting
