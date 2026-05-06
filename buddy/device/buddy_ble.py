@@ -218,12 +218,15 @@ class BuddyBLE:
         self._name = stack["name"]
         self._pairing_supported = stack["pairing"]
 
-        # Rebinding the IRQ callback replaces any handler from a
-        # previous app entry — that's what we want, since the old
-        # BuddyBLE instance is about to be garbage-collected and its
-        # bound method would crash on dispatch.
-        self._ble.irq(self._irq)
-
+        # Initialize instance state BEFORE wiring the IRQ. The stack
+        # is a singleton ([_ensure_stack]) so the controller stays live
+        # across app entries; deinit() issues an asynchronous
+        # gap_disconnect, and the resulting DISCONNECT event from the
+        # previous session can land the moment we re-attach our
+        # handler. _irq's first access is `self._shutting_down`, which
+        # would AttributeError if those attrs aren't set yet — silently
+        # dropping the event and (more importantly) leaving any future
+        # access in this handler invocation undefined.
         self._conn = None
         self._encrypted = False
         self._rx_buf = bytearray()
@@ -233,6 +236,12 @@ class BuddyBLE:
         # we've already returned to the launcher) can't repaint stale
         # UI or re-arm advertising on an app that's on its way out.
         self._shutting_down = False
+
+        # Rebinding the IRQ callback replaces any handler from a
+        # previous app entry — that's what we want, since the old
+        # BuddyBLE instance is about to be garbage-collected and its
+        # bound method would crash on dispatch.
+        self._ble.irq(self._irq)
 
         # Re-entering after a prior deinit() leaves the stack in a
         # "not advertising" state. The first gap_advertise after that

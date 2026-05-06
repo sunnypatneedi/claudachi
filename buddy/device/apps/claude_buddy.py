@@ -160,12 +160,22 @@ def run():
         if p is not None:
             p.on_line(raw)
 
+    # BLE callbacks dispatch from micropython.schedule context, which
+    # runs between bytecodes on the main thread. That means a
+    # callback can land *inside* a Python-level UI routine that's
+    # mid-way through a sequence of SPI ops to the LCD, interleaving
+    # writes and leaving the panel in an inconsistent state. We avoid
+    # that by having callbacks only mutate plain Python state and
+    # letting the main loop drain it into UI calls. send_hello stays
+    # in the callback because it's BLE-only — no LCD bus contention.
+    pending_state = [None]
+    pending_passkey = [None]
+
     def on_passkey(pk):
-        ui.show_passkey(pk)
+        pending_passkey[0] = pk
 
     # Pre-bind so on_state_change's closure can resolve `ble` even if
-    # the IRQ fires during BuddyBLE.__init__ (the irq handler is
-    # wired up before _advertise() runs, so a central that connects
+    # the IRQ fires during BuddyBLE.__init__ (a central that connects
     # mid-init can deliver _IRQ_CENTRAL_CONNECT before the
     # `ble = BuddyBLE(...)` assignment below completes). Without this
     # pre-bind, on_state_change raises NameError in IRQ context and
@@ -183,9 +193,8 @@ def run():
         if s == "connected" and ble is not None and not ble.pairing_supported:
             effective = "encrypted"
         print("claude_buddy: state", s, "->", effective)
-        ui.set_connection(effective)
+        pending_state[0] = effective
         if effective == "encrypted":
-            ui.clear_passkey()
             p = proto_holder["p"]
             if p is not None:
                 p.send_hello()
@@ -223,6 +232,22 @@ def run():
 
     try:
         while True:
+            # Drain BLE-callback-deferred UI work in main-loop context
+            # so LCD writes don't interleave with the periodic footer
+            # paint or the prompt rendering kicked off by protocol
+            # events. set_connection in particular repaints the whole
+            # header strip, which is several SPI transactions long.
+            new_state = pending_state[0]
+            if new_state is not None:
+                pending_state[0] = None
+                ui.set_connection(new_state)
+                if new_state == "encrypted":
+                    ui.clear_passkey()
+            new_pk = pending_passkey[0]
+            if new_pk is not None:
+                pending_passkey[0] = None
+                ui.show_passkey(new_pk)
+
             kb.tick()
             k = kb.get_key()
             intent = _intent_for_key(k)
