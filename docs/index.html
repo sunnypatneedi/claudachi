@@ -3,73 +3,172 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Claudachi · Install on Cardputer-Adv</title>
+  <title>Claudachi · Pocket virtual pet for Cardputer-Adv</title>
+  <meta name="description" content="A kid-safe virtual pet that lives on a card-sized computer. Two clicks to install — no terminal, no Python, no clone.">
   <link rel="stylesheet" href="styles.css">
-  <!-- ESP Web Tools handles the firmware-flash phase. After it
-       finishes, we hand off to flasher.js which uses WebSerial
-       directly to push the buddy bundle (paste-mode REPL). -->
+  <!-- ESP Web Tools handles the firmware-flash phase. flasher.js
+       takes over after for the post-flash apps push over WebSerial. -->
   <script type="module" src="https://unpkg.com/esp-web-tools@10.0.0/dist/web/install-button.js?module"></script>
   <script defer src="flasher.js"></script>
 </head>
 <body>
-  <header>
-    <h1>Claudachi</h1>
-    <p class="tagline">A kid-safe virtual pet for the Cardputer-Adv. Install in two clicks.</p>
-  </header>
 
+  <!-- ===== Hero ===== -->
+  <section class="hero">
+    <div class="pet-stage">
+      <!-- Pixel-art pet drawn as SVG so it scales crisply on any
+           display. Cells map 1:1 to claudachi.py's _BODY + _FACE_IDLE
+           (16 cols × 14 rows). The bob + blink animations live in
+           styles.css. -->
+      <svg viewBox="0 0 16 14" class="pet" shape-rendering="crispEdges" aria-label="Claudachi the virtual pet, smiling">
+        <!-- Body (orange) -->
+        <g fill="#cc785c">
+          <rect x="4"  y="0"  width="8"  height="1"/>
+          <rect x="2"  y="1"  width="12" height="1"/>
+          <rect x="1"  y="2"  width="14" height="1"/>
+          <rect x="0"  y="3"  width="16" height="9"/>
+          <rect x="1"  y="12" width="14" height="1"/>
+          <rect x="2"  y="13" width="12" height="1"/>
+        </g>
+        <!-- Cream belly -->
+        <g fill="#f0eee6">
+          <rect x="2"  y="7"  width="12" height="1"/>
+          <rect x="1"  y="8"  width="14" height="3"/>
+          <rect x="2"  y="11" width="12" height="1"/>
+        </g>
+        <!-- Eyes (left + right). Each is a 2x2 dark block. -->
+        <g class="eyes" fill="#1f1f1f">
+          <rect class="eye eye-l" x="4"  y="4" width="2" height="2"/>
+          <rect class="eye eye-r" x="10" y="4" width="2" height="2"/>
+        </g>
+        <!-- Cheek blush -->
+        <g fill="#e8a0a0">
+          <rect x="3"  y="6" width="1" height="1"/>
+          <rect x="12" y="6" width="1" height="1"/>
+        </g>
+        <!-- Smile -->
+        <g fill="#1f1f1f">
+          <rect x="5"  y="9"  width="1" height="1"/>
+          <rect x="10" y="9"  width="1" height="1"/>
+          <rect x="6"  y="10" width="4" height="1"/>
+        </g>
+      </svg>
+      <div class="pet-shadow"></div>
+    </div>
+    <h1>Claudachi</h1>
+    <p class="tagline">A pocket-sized virtual pet for kids.<br>Lives on a card-sized computer. No screens, no apps, no ads.</p>
+    <a href="#step-1" class="cta">Get started ↓</a>
+  </section>
+
+  <!-- ===== Steps ===== -->
   <main>
+
     <section class="step" id="step-1">
-      <div class="step-no">1</div>
-      <div class="step-body">
-        <h2>Install firmware</h2>
-        <p>Plug the Cardputer-Adv into your computer with a USB-C <strong>data</strong> cable. If nothing happens when you click, <strong>try flipping the cable 180°</strong> — Cardputer-Adv only enumerates one orientation.</p>
-        <esp-web-install-button manifest="manifest.json">
-          <button slot="activate" class="primary">Install firmware</button>
-          <span slot="unsupported">Your browser doesn't support WebSerial. Use Chrome, Edge, or Brave on a desktop.</span>
-          <span slot="not-allowed">WebSerial is only available over HTTPS.</span>
-        </esp-web-install-button>
-        <details class="hint">
-          <summary>What does this do?</summary>
-          <p>Writes M5Stack's UIFlow 2.0 firmware (~8 MB) to the device. When prompted, you'll need to do the <strong>button dance</strong> on the back of the device:</p>
-          <ol class="dance">
-            <li>Hold <kbd>G0</kbd></li>
-            <li>Tap <kbd>RST</kbd> (still holding <kbd>G0</kbd>)</li>
-            <li>Release <kbd>RST</kbd></li>
-            <li>Release <kbd>G0</kbd> after ~1 sec — screen goes dark</li>
-          </ol>
-          <p>The buttons are flush-mounted on the back of the device; a fingernail helps.</p>
-        </details>
+      <div class="step-icon">🛒</div>
+      <div class="step-content">
+        <span class="step-tag">Step 1</span>
+        <h2>Get a Cardputer-Adv</h2>
+        <p>About $30. Make sure it says <strong>"Adv" version</strong> — the original Cardputer (no Adv) takes different firmware and won't work with this.</p>
+        <div class="store-links">
+          <a class="store-link" href="https://shop.m5stack.com/products/m5stack-cardputer-adv-version-esp32-s3" target="_blank" rel="noopener">
+            <span class="store-name">M5Stack Official</span>
+            <span class="store-meta">global · made by the manufacturer</span>
+          </a>
+          <a class="store-link" href="https://www.amazon.com/M5stack-Official-Cardputer-Version-ESP32-S3/dp/B0G6ZN35ZX" target="_blank" rel="noopener">
+            <span class="store-name">Amazon (Official listing)</span>
+            <span class="store-meta">US · M5Stack-branded seller</span>
+          </a>
+          <a class="store-link" href="https://thepihut.com/products/m5stack-cardputer-adv" target="_blank" rel="noopener">
+            <span class="store-name">The Pi Hut</span>
+            <span class="store-meta">UK · authorized distributor</span>
+          </a>
+        </div>
       </div>
     </section>
 
     <section class="step" id="step-2">
-      <div class="step-no">2</div>
-      <div class="step-body">
-        <h2>Install apps</h2>
-        <p>Once the firmware finishes and the device reboots, click below to push the Claudachi app (and the rest of the buddy bundle) onto the device. The browser will ask you to pick the serial port again.</p>
-        <button id="install-apps" class="primary">Install apps</button>
+      <div class="step-icon">🔌</div>
+      <div class="step-content">
+        <span class="step-tag">Step 2</span>
+        <h2>Plug it in</h2>
+        <p>Use a USB-C <strong>data</strong> cable (not the charging-only kind that came with your toothbrush). The Cardputer-Adv only enumerates one cable orientation — if nothing happens when you click below, <strong>flip the cable 180°</strong> and try again.</p>
+        <div class="cable-art">
+          <span class="cable-end">💻</span>
+          <span class="cable-line"></span>
+          <span class="cable-end">📱</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="step" id="step-3">
+      <div class="step-icon">⚡</div>
+      <div class="step-content">
+        <span class="step-tag">Step 3</span>
+        <h2>Install firmware</h2>
+        <p>Click below. The browser will ask for permission to talk to the Cardputer, then walk you through the <strong>button dance</strong>.</p>
+        <esp-web-install-button manifest="manifest.json">
+          <button slot="activate" class="primary">⚡ Install firmware</button>
+          <span slot="unsupported">⚠️ Your browser doesn't support WebSerial. Use Chrome, Edge, or Brave on a desktop.</span>
+          <span slot="not-allowed">⚠️ WebSerial requires HTTPS.</span>
+        </esp-web-install-button>
+        <details class="hint">
+          <summary>What's the button dance?</summary>
+          <p>Two flush-mounted buttons on the <strong>back</strong> of the Cardputer-Adv (a fingernail helps):</p>
+          <ol class="dance-steps">
+            <li><kbd>HOLD</kbd> the <kbd>G0</kbd> button</li>
+            <li>Still holding G0, <kbd>TAP</kbd> the <kbd>RST</kbd> button</li>
+            <li>Release <kbd>RST</kbd> first</li>
+            <li>Wait a second, then release <kbd>G0</kbd></li>
+            <li>Screen goes dark = ready to flash 🎯</li>
+          </ol>
+          <p class="hint-note">Takes about 3 minutes after the dance — UIFlow firmware is ~8 MB and we flash slow-and-steady to be reliable.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="step" id="step-4">
+      <div class="step-icon">📦</div>
+      <div class="step-content">
+        <span class="step-tag">Step 4</span>
+        <h2>Install Claudachi</h2>
+        <p>After the firmware finishes and the device reboots, click below. The browser asks for the serial port one more time, then pushes the Claudachi pet (plus a few bonus apps) onto the device. ~30 seconds.</p>
+        <button id="install-apps" class="primary">📦 Install Claudachi</button>
         <div id="apps-status" class="status" hidden>
           <div class="status-line" id="apps-status-line">Waiting…</div>
           <progress id="apps-progress" value="0" max="100"></progress>
         </div>
         <details class="hint">
-          <summary>What does this do?</summary>
-          <p>Sends ~150 KB of MicroPython files into <code>/flash/</code> on the device via the REPL: the Claudachi pet, the Snake game, the Hello demo, the Claude Buddy BLE client, plus their shared modules. Nothing leaves your machine.</p>
+          <summary>What does this push?</summary>
+          <p>~150 KB of MicroPython into <code>/flash/</code>: Claudachi the pet, plus Snake, a Hello demo, and the Claude Buddy BLE client (a separate experimental app). Nothing leaves your machine.</p>
         </details>
       </div>
     </section>
 
-    <section class="step" id="step-3">
-      <div class="step-no">3</div>
-      <div class="step-body">
-        <h2>Try Claudachi</h2>
-        <p>Power-cycle the device with the side switch. The launcher menu shows up — pick <strong>claudachi</strong> and meet your new friend. Keys: <kbd>F</kbd> feed · <kbd>P</kbd> play · <kbd>Z</kbd> nap · <kbd>T</kbd> talk · <kbd>Q</kbd> back.</p>
+    <section class="step" id="step-5">
+      <div class="step-icon">🎉</div>
+      <div class="step-content">
+        <span class="step-tag">Step 5</span>
+        <h2>Have fun with Claudachi!</h2>
+        <p>Power-cycle the Cardputer with the side switch. The launcher menu shows up — pick <strong>claudachi</strong> and meet your new friend.</p>
+        <div class="key-grid">
+          <div class="key-card"><kbd class="big">F</kbd><span>feed</span></div>
+          <div class="key-card"><kbd class="big">P</kbd><span>play</span></div>
+          <div class="key-card"><kbd class="big">Z</kbd><span>nap</span></div>
+          <div class="key-card"><kbd class="big">T</kbd><span>talk</span></div>
+          <div class="key-card"><kbd class="big">Q</kbd><span>back</span></div>
+        </div>
+        <p class="hint-note">Each action plays a little chirp tune. Claudachi never dies, never asks personal questions, and runs entirely on the device — nothing online, nothing cloud-based, no parent worry.</p>
       </div>
     </section>
+
   </main>
 
   <footer>
-    <p>Source: <a href="https://github.com/sunnypatneedi/build-with-claude">github.com/sunnypatneedi/build-with-claude</a> · Runs entirely in your browser; nothing is uploaded.</p>
+    <p>
+      Source: <a href="https://github.com/sunnypatneedi/claudachi" target="_blank" rel="noopener">github.com/sunnypatneedi/claudachi</a>
+      · Runs entirely in your browser; nothing about your device is uploaded.
+    </p>
   </footer>
+
 </body>
 </html>
