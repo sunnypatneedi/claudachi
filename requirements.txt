@@ -15,4 +15,14 @@
 #
 # To install everything explicitly (CI, reproducible setup):
 #   python3 -m pip install --user -r requirements.txt
-esptool>=4.11
+#
+# esptool is upper-bounded below 5.x because flash.py uses the
+# underscore-form CLI options (`--before no_reset`, `--after
+# watchdog_reset`, `write_flash`) that 5.x deprecates *and* changes
+# the connect-time sync behavior of in a way that breaks
+# `--before no_reset --no-stub` against the Cardputer-Adv USB-JTAG
+# bootloader. Symptom on 5.x: post-button-dance flash hangs at
+# "Connecting......" then exits with "No serial data received."
+# Lift the upper bound only after flash.py is updated to the
+# hyphenated option names and confirmed against the Cardputer-Adv.
+esptool>=4.11,<5
